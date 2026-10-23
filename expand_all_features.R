@@ -1,17 +1,24 @@
 # ===========================================================================
 # expand_all_features.R
 #
-# NOT YET RUN. This consolidates expand_data.R + expand_extra_features.R +
-# merge_features.R into the single script that should have produced
-# alldata.csv all along, had all three rounds of feature work been planned
-# together from the start instead of accreting across sessions. It is meant
-# to produce byte-for-byte the same alldata.csv that running expand_data.R,
-# then expand_extra_features.R, then merge_features.R in sequence produces
-# -- NOT a rewrite or an optimization pass. Every computational line below
-# is copied unchanged from one of those three scripts; only the boilerplate
-# that all three duplicated (loading net_data.csv/graphs.csv, and the final
-# merge/fill/reorder/write step that merge_features.R used to do against
-# two files on disk) has been de-duplicated into one copy, run once, here.
+# Verified 2026-10-23: re-ran this script against expand_data.R +
+# expand_extra_features.R + merge_features.R run in sequence, both on an
+# identical reconstructed sample (3 participants, 90 trials, graphs.csv
+# trimmed to just the 90 networks they reference and netid remapped to
+# match), and confirmed the two pipelines' alldata.csv outputs are
+# identical column-for-column (within floating-point tolerance) after
+# sorting both by rid. This consolidates expand_data.R + expand_extra_
+# features.R + merge_features.R into the single script that should have
+# produced alldata.csv all along, had all three rounds of feature work been
+# planned together from the start instead of accreting across sessions. It
+# is meant to produce byte-for-byte the same alldata.csv that running
+# expand_data.R, then expand_extra_features.R, then merge_features.R in
+# sequence produces -- NOT a rewrite or an optimization pass. Every
+# computational line below is copied unchanged from one of those three
+# scripts; only the boilerplate that all three duplicated (loading
+# net_data.csv/graphs.csv, and the final merge/fill/reorder/write step that
+# merge_features.R used to do against two files on disk) has been
+# de-duplicated into one copy, run once, here.
 #
 # Specifically NOT changed, on purpose, even though it would be faster:
 # expand_data.R's per-trial loop below re-parses each network's graph JSON
@@ -19,9 +26,8 @@
 # participant/trial loop), even though PHASE 1 below has already parsed
 # and cached every network's topology once. Unifying that would be a real
 # optimization, but it would also mean this script's two halves are no
-# longer simply "the old scripts, verbatim" -- and this script is not being
-# run or diffed against the old output before being trusted, so verbatim-
-# but-slower was judged the safer choice over faster-but-unverified.
+# longer simply "the old scripts, verbatim", so verbatim-but-slower was
+# judged the safer choice over faster-but-unverified.
 #
 # The only other thing worth knowing before running this: PHASE 1 below
 # calls set.seed(1) immediately before its own random-restart KK layout
