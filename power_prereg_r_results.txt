@@ -1,0 +1,159 @@
+Power analysis for the R-side preregistration analyses (RQ1-RQ3)
+Original sample N = 8614 
+
+=== RQ2: sign-reversal replication (two-sided t-tests) ===
+Mutual friends: unique/partial d = -0.426
+  N for 80% power (two-sided): 46
+  N for 90% power (two-sided): 60
+  N for 95% power (two-sided): 74
+Target distance: unique/partial d = 0.420
+  N for 80% power (two-sided): 47
+  N for 90% power (two-sided): 62
+  N for 95% power (two-sided): 76
+
+=== RQ1: profile replication ===
+
+-- zero_order (Pearson profile correlation) --
+    N    mean_r power_sig
+  100 0.9967514         1
+  150 0.9975737         1
+  200 0.9980657         1
+  300 0.9987618         1
+  400 0.9989760         1
+  500 0.9993665         1
+  750 0.9995780         1
+ 1000 0.9997583         1
+ 1500 0.9998028         1
+ 2000 0.9998458         1
+      N    mean_r power_sig
+1   100 0.9967514         1
+2   150 0.9975737         1
+3   200 0.9980657         1
+4   300 0.9987618         1
+5   400 0.9989760         1
+6   500 0.9993665         1
+7   750 0.9995780         1
+8  1000 0.9997583         1
+9  1500 0.9998028         1
+10 2000 0.9998458         1
+
+-- unique (Pearson profile correlation) --
+    N    mean_r power_sig
+  100 0.9603884         1
+  150 0.9768223         1
+  200 0.9794491         1
+  300 0.9859251         1
+  400 0.9914821         1
+  500 0.9923610         1
+  750 0.9959603         1
+ 1000 0.9968585         1
+ 1500 0.9979432         1
+ 2000 0.9985384         1
+      N    mean_r power_sig
+1   100 0.9603884         1
+2   150 0.9768223         1
+3   200 0.9794491         1
+4   300 0.9859251         1
+5   400 0.9914821         1
+6   500 0.9923610         1
+7   750 0.9959603         1
+8  1000 0.9968585         1
+9  1500 0.9979432         1
+10 2000 0.9985384         1
+
+-- marginal (Pearson profile correlation) --
+    N    mean_r power_sig
+  100 0.9825104         1
+  150 0.9881897         1
+  200 0.9910349         1
+  300 0.9962534         1
+  400 0.9954125         1
+  500 0.9965855         1
+  750 0.9978500         1
+ 1000 0.9984524         1
+ 1500 0.9991836         1
+ 2000 0.9993114         1
+      N    mean_r power_sig
+1   100 0.9825104         1
+2   150 0.9881897         1
+3   200 0.9910349         1
+4   300 0.9962534         1
+5   400 0.9954125         1
+6   500 0.9965855         1
+7   750 0.9978500         1
+8  1000 0.9984524         1
+9  1500 0.9991836         1
+10 2000 0.9993114         1
+
+-- Wasserstein distance + permutation (this is the slow part) --
+  zero_order N=100 power=1.00
+  zero_order N=200 power=1.00
+  zero_order N=300 power=1.00
+  zero_order N=500 power=1.00
+  zero_order N=750 power=1.00
+  zero_order N=1000 power=1.00
+     N power
+1  100     1
+2  200     1
+3  300     1
+4  500     1
+5  750     1
+6 1000     1
+  unique N=100 power=1.00
+  unique N=200 power=1.00
+  unique N=300 power=1.00
+  unique N=500 power=1.00
+  unique N=750 power=1.00
+  unique N=1000 power=1.00
+     N power
+1  100     1
+2  200     1
+3  300     1
+4  500     1
+5  750     1
+6 1000     1
+  marginal N=100 power=1.00
+  marginal N=200 power=1.00
+  marginal N=300 power=1.00
+  marginal N=500 power=1.00
+  marginal N=750 power=1.00
+  marginal N=1000 power=1.00
+     N power
+1  100     1
+2  200     1
+3  300     1
+4  500     1
+5  750     1
+6 1000     1
+
+=== RQ3: PCA out-of-sample reconstruction + congruence ===
+  PCA N= 100 done
+  PCA N= 150 done
+  PCA N= 200 done
+  PCA N= 300 done
+  PCA N= 500 done
+  PCA N= 750 done
+  PCA N= 1000 done
+  PCA N= 1500 done
+  PCA N= 2000 done
+
+    N   recon_r noise_ceiling_r     ratio     cong1     cong2 power_ratio_ge90
+  100 0.9837080       0.9905960 0.9930432 0.9968624 0.9940701                1
+  150 0.9870632       0.9938631 0.9931566 0.9981961 0.9960451                1
+  200 0.9883608       0.9953006 0.9930273 0.9985536 0.9972465                1
+  300 0.9904362       0.9971993 0.9932173 0.9990098 0.9983027                1
+  500 0.9912243       0.9982408 0.9929711 0.9994152 0.9988524                1
+  750 0.9921324       0.9989732 0.9931521 0.9997102 0.9993208                1
+ 1000 0.9924334       0.9992153 0.9932127 0.9997762 0.9994807                1
+ 1500 0.9926601       0.9995700 0.9930871 0.9998759 0.9996824                1
+ 2000 0.9929212       0.9997001 0.9932190 0.9999161 0.9998010                1
+ power_cong_ge95
+               1
+               1
+               1
+               1
+               1
+               1
+               1
+               1
+               1

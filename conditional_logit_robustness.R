@@ -55,6 +55,20 @@ context_cols <- c("uclust", "uconstr", "uecc", "uvecc", "uesize", "ucomsize", "n
 predictor_registry$context <- predictor_registry$col %in% context_cols
 predictor_registry <- predictor_registry[!predictor_registry$context, ]   # 32 predictors, matches the "partial" LPM
 
+# category + colors: identical to analyze_nets.R's cat_map/catcol_dark, so
+# this plot's colors mean the same thing as every other figure in this
+# project (Target = green, Dyad = orange, Network = purple, Self = blue).
+cat_map <- list(
+    Target  = c("degree","closeness","betweenness","eigenvector","clust","constr","ecc","vecc","esize","comsize"),
+    Dyad    = c("samecom","edgbet","udists","mutfr","vdist","dhom","structsim","aa","katz","srcos"),
+    Network = c("chgmod","chgast","chapl","chgcent","chgvar","netcent","netvar"),
+    Self    = c("chub","chuc","chue","uclust","chuclust","uconstr","chuconstr","uecc","chuecc","uvecc","uesize","chuesize","ucomsize")
+)
+predictor_registry$cat <- sapply(predictor_registry$col, function(x)
+    names(cat_map)[sapply(cat_map, function(v) x %in% v)])
+catnames    <- c("Target", "Dyad", "Network", "Self")
+catcol_dark <- c("#2CA02C", "#FF7F0E", "#9467BD", "#1F77B4")
+
 zscore_cols <- setdiff(predictor_registry$col, "samecom")   # samecom is binary, not z-scored (matches analyze_nets.R)
 dat[, zscore_cols] <- scale(dat[, zscore_cols])
 
@@ -96,4 +110,70 @@ cat("Spearman r (same, rank-based):", round(r_concordance_rank, 4), "\n")
 
 save(fit, coef_tab, file = "conditional_logit_fit.Rdata")
 cat("\nsaved conditional_logit_results.csv and conditional_logit_fit.Rdata\n")
+
+# ===========================================================================
+# Visualization -- for inspecting the concordance between the two methods,
+# not (yet) intended for the manuscript. Colors/category grouping match
+# analyze_nets.R's combined_regression.pdf (Target/Dyad/Network/Self,
+# catcol_dark) so this reads consistently with every other figure in the
+# project. Two views:
+#   (A) side-by-side horizontal coefficients, LPM partial vs. conditional
+#       logit, same predictor order in both columns, colored by category
+#   (B) a scatter of the two methods' coefficients directly against each
+#       other, colored by category, with the two sign-reversal predictors
+#       (mutual friends, target distance) called out by name
+# ===========================================================================
+coef_tab$cat <- predictor_registry$cat[match(coef_tab$name, predictor_registry$name)]
+coef_tab$col <- catcol_dark[match(coef_tab$cat, catnames)]
+
+# order: by category (in the same Target/Dyad/Network/Self sequence used
+# elsewhere), then by LPM partial coefficient magnitude within category
+ord <- order(match(coef_tab$cat, catnames), -abs(coef_tab$lpm_partial_mean))
+coef_tab <- coef_tab[ord, ]
+
+pdf("conditional_logit_diagnostics.pdf", width = 10, height = 8)
+
+# --- panel A: side-by-side horizontal coefficients ---
+layout(matrix(c(1, 2), nrow = 1), widths = c(1, 1))
+n <- nrow(coef_tab)
+y <- n:1
+
+draw_side <- function(vals, title_txt, xlab_txt) {
+    xmax <- max(abs(vals)) * 1.15
+    par(mai = c(0.7, 2.6, 0.5, 0.2))
+    plot(0, 0, type = "n", xlim = c(-xmax, xmax), ylim = c(0.5, n + 0.5),
+        axes = FALSE, xlab = xlab_txt, ylab = "", main = title_txt)
+    abline(v = 0, lty = 2, col = "grey50")
+    segments(0, y, vals, y, col = coef_tab$col, lwd = 6, lend = 1)
+    points(vals, y, pch = 16, col = coef_tab$col, cex = 0.6)
+    mismatch <- !coef_tab$sign_agree
+    if (any(mismatch)) {
+        text(vals[mismatch] + sign(vals[mismatch]) * xmax * 0.06, y[mismatch], "*",
+            col = "black", font = 2, cex = 1.3)
+    }
+    axis(1, cex.axis = 0.8)
+    axis(2, at = y, labels = coef_tab$name, las = 1, cex.axis = 0.65, tick = FALSE, line = -0.5)
+}
+draw_side(coef_tab$lpm_partial_mean, "Linear probability model\n(mean partial coefficient)", "Coefficient")
+draw_side(coef_tab$clogit_coef, "Pooled conditional logit", "Coefficient")
+mtext("* marks the 7 predictors where the two methods disagree in sign (all small-magnitude in the LPM)",
+    side = 1, line = -1, outer = TRUE, cex = 0.8, col = "grey40")
+
+# --- panel B: scatter, clogit vs LPM partial ---
+layout(1)
+par(mai = c(1, 1, 0.6, 0.3))
+plot(coef_tab$lpm_partial_mean, coef_tab$clogit_coef, pch = 16, col = coef_tab$col, cex = 1.3,
+    xlab = "Linear probability model (mean partial coefficient)",
+    ylab = "Pooled conditional logit coefficient",
+    main = sprintf("Conditional logit vs. linear probability model\nsign agreement: %d/%d, Spearman r = %.2f",
+                   sum(coef_tab$sign_agree), n, r_concordance_rank))
+abline(h = 0, v = 0, lty = 2, col = "grey60")
+flag <- coef_tab$name %in% c("Mutual friends", "Target distance")
+label_pos <- ifelse(coef_tab$lpm_partial_mean[flag] < 0, 4, 3)
+text(coef_tab$lpm_partial_mean[flag], coef_tab$clogit_coef[flag], coef_tab$name[flag],
+    pos = label_pos, cex = 0.8, font = 2, xpd = NA)
+legend("bottomright", legend = catnames, col = catcol_dark, pch = 16, bty = "n", cex = 0.85)
+
+dev.off()
+cat("saved conditional_logit_diagnostics.pdf\n")
 cat("ALL_DONE\n")
