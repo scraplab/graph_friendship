@@ -2,6 +2,8 @@
 
 This repository contains the analysis code for Thornton, "The graph theoretic determinants of friendship selection." The corresponding data (raw, processed, and cached intermediate results) are archived separately on Zenodo at [doi.org/10.5281/zenodo.23628825](https://doi.org/10.5281/zenodo.23628825).
 
+**`task_frontend/`** has the participant-facing task code (the HTML/CSS/JS that presented the network choice task on MySocialBrain.org), shared for transparency rather than as a runnable copy -- see its own README.
+
 ## Setup
 
 ### R

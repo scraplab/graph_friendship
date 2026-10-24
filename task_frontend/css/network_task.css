@@ -1,0 +1,42 @@
+/* network_task.css
+ *
+ * Styling for the "net" task's D3 network visualization, extracted
+ * verbatim from the platform's shared css/styles.css. Only the rules
+ * this task's nodes/links actually use.
+ */
+
+.link {
+  stroke: #000;
+  stroke-width: 4;
+  stroke-opacity: .3;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+.node {
+  fill: black;
+  stroke: #000;
+  cursor: pointer;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+.usernode {
+    cursor: default;
+    fill: red;
+}
+
+.friendnode {
+    cursor: default;
+    fill: salmon;
+}
+
+.selectednode{
+    cursor: default;
+    fill: #ff3300;
+    stroke: #ffb300;
+}

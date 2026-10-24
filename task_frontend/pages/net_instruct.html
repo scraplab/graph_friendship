@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- redirect to index.html -->
+        <meta http-equiv="refresh" content="0;/index.html">
+        <meta name="description" content="html for modals">
+        <meta name="author" content="Mark Allen Thornton">
+        <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+        <title>mysocialbrain.org/net_instruct</title>
+    </head>
+    <body>
+        <div class="row modal-content" id="content">
+            <div class="col-lg-12 text-center">
+                <h1><span class="text-muted">Instructions</span></h1><br>
+                <h4>Please read the instructions carefully before starting the experiment!</h4><hr><br>
+                <form id="modal_instruct-form" novalidate>
+                    <div class="row">
+                        <div class="col-lg-12 text-left">
+                            <p>
+                            This study will consist of 30 trials in which you will make social connections in naturalistic social networks.
+                            On each trial, you will be presented with a network graph like the one below. Each circle represents another (imaginary) person, with
+                            one red node representing you, the participant. The lines between people represent existing social connections.
+                            Your task will be to make a new social connection that maximizes your status in the network, however you define it. You
+                            will do so by clicking on or tapping the circle representing the person you wish to make friends with. Each trial is independent
+                            of the previous ones - your choices are not cummulative.</p>
+                              
+                            <div class="row">
+                            <div class="col-lg-6 col-lg-offset-3">
+                                <img class="img-responsive" src="img/network.png">
+                            </div>
+                            </div>
+                                
+                                <p>Consider each choice carefully. There are no 
+                                right or wrong answers - we are merely interested in the principles which guide your decisions.
+                            If you are ready to start this task, please press the "begin" button below.
+                            <b>Do not hit the reload or back buttons during the experiment unless you wish to exit the study.</b>
+                            </p>
+                            
+                                                    </div>
+                        </div>
+                    <div id="modal-success"></div>
+                    <div class="row">
+                        <div class="col-lg-12 text-center">
+	                        <br>
+                            <button id="modal_instruct-btn" type="button" class="btn btn-xl">Begin</button><br><br>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

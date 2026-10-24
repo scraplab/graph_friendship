@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- redirect to index.html -->
+        <meta http-equiv="refresh" content="0;/index.html">
+        <meta name="description" content="html for modals">
+        <meta name="author" content="Mark Allen Thornton">
+        <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+        <title>mysocialbrain.org/net_results</title>
+    </head>
+    <body>
+        <div class="row modal-content" id="content">     
+            <div class="col-lg-12 text-center">
+					<h3 id="testTitle">Choose Your Friends Wisely!</h3>
+					<div class="row">
+	                    <h3><span class="text-muted">My Results</span></h3><br>
+                        <p>Thank you for participating in this study!</p>
+                        
+						<div class="col-lg-10 col-lg-offset-1 text-left">
+                            
+                            <div class="row resultpane">
+                                <h3>What was the purpose of this study?</h3>
+                                <p>The purpose of this study is to learn more about the factors that influence the formation of social connections and social networks. Human social networks
+                                are known to demonstrate the "<a href="https://en.wikipedia.org/wiki/Matthew_effect">Matthew effect</a>" - the (socially) rich get richer, and the poor get poorer. We are interested in the process behind this
+                                phenomenon. Are people merely attracted to connecting with popular people - as in <a href="https://en.wikipedia.org/wiki/Preferential_attachment">preferential attachment</a> 
+                                    - or do other forms of social capital also influence these decisions?</p>
+                                
+                                <h3>What were our hypotheses?</h3>
+                                <p>We hypothesize that several different forms of social capital related to network structure might influence people's decisions about who to form social connections with.
+                                In particular, we are testing the effects of four different types of network <a href="https://en.wikipedia.org/wiki/Centrality">centrality</a> on people's choices: 
+                                degree centrality, closeness centrality, betweenness centrality, and eigenvector centrality. These forms of centrality are described in detail below.</p>
+                                
+                                <h3>How was this study conducted?</h3>
+                                <p>On each trial of the task, we showed you a naturalistically structured network generated using a <a href="">geometric random graph</a> algorithm. 
+                                    The simulated people (newtork nodes) naturally differed in terms of their centrality, so we could measure the extent
+                                to which the choice you selected had higher centrality than nodes in the network as a way of assessing how much each form of centrality influenced your choice.</p>
+                                
+                                <h3>Did we tell you everything?</h3>
+                                <p>We never lie to participants on MySocialBrain.org: active deception is not a part of any of our research. However, in some studies we make use of "incomplete disclosure" - meaning
+                                that we do not tell you about some aspects of a study in advance. Typically this takes the form of not disclosing our experimental manipulation or research hypotheses. We do this primarily
+                                to avoid biasing your responses with <a href="https://en.wikipedia.org/wiki/Demand_characteristics">demand characteristics</a>. In the case of the current study, we did not
+                                    describe the various forms of centrality in detail before the study because we did not want to bias you towards using any of them to make your judgements.</p>
+                                
+                                <h3>Why is this study important?</h3>
+                                <p>Social networks have many effects on people's lives, influencing people's health, happiness, and knowledge of the world. To manage these effects, we must first understand
+                                the dynamics which give rise to the structure of naturalistic human networks. This study will allow us to learn how a social network's existing structure will influence 
+                                its future development.</p>
+                                
+                                <h3 id="meaning">What do my results mean?</h3>
+                                <p>We have quantified the extent to which four different forms of network <a href="https://en.wikipedia.org/wiki/Centrality">centrality</a> influenced your choices in the
+                                experiment. You can read descriptions of each of these types of centrality or view the different types of centrality on an example network below to get a better intuition for them.
+                                Note the the numerical results you receive are normalized so that you can compare the effects of different forms of centrality on the same scale.</p>
+                                
+                                <div class="row">
+                                    <div class="class-lg-12">
+                                            <ul>
+                                              <li> <a href="https://en.wikipedia.org/wiki/Centrality#Degree_centrality"><b>Degree Centrality:</b></a> simply the number of connections possessed by each node. Analogous to a person's raw popularity in a
+                                                  human social network.
+                                              </li>
+                                              <li> <a href="https://en.wikipedia.org/wiki/Centrality#Closeness_centrality"><b>Closeness Centrality:</b></a> distance between nodes is defined by the shortest path between them (in terms of number of discrete
+                                                  links). The closeness centrality of a node is equal to 1/(sum of distances to all other nodes).
+                                              </li>
+                                               <li> <a href="https://en.wikipedia.org/wiki/Centrality#Betweenness_centrality"><b>Betweenness Centrality:</b></a> is equal to the proportion of all shortest paths between nodes that pass through a particular node.
+                                                   Can be a valuable property in human social networks because people can leverage their connection to different groups a variety of ways.
+                                              </li>
+                                                <li> <a href="https://en.wikipedia.org/wiki/Centrality#Eigenvector_centrality"><b>Eigenvector Centrality:</b></a> is a bit more complicated to compute (see link above), but is based on the intuition that an central
+                                                    node is one that is connected to other central nodes. Closely related to <a href="https://en.wikipedia.org/wiki/PageRank">
+                                                    algorithms</a> used by Google and others to sort search results. This measure may not work for very small networks, so try
+                                                    building up a reasonably sized network before clicking this button.
+                                              </li>
+                                          </ul>
+                                    </div>
+                                </div>
+                                
+                                
+                                
+                            </div>
+                            
+                            <div class="row resultpane" id="network_result">
+                                
+                                <div class="col-lg-10 col-lg-offset-1 text-center"id="bararea"></div>
+                                
+                                
+                                <div class="col-lg-10 col-lg-offset-1 text-center"id="visarea">
+                                    <h4>Example network:</h4>
+                                </div>
+                                
+                                <div class="col-lg-10 col-lg-offset-1 text-center">
+                                      <div class="btn-group" role="group">
+                                      <button id="degree" type="button" class="ctoggle btn btn-default active">Degree</button>
+                                      <button id="closeness" type="button" class="ctoggle btn btn-default">Closeness</button>
+                                      <button id="betweenness" type="button" class="ctoggle btn btn-default">Betweenness</button>
+                                      <button id="eigenvector" type="button" class="ctoggle btn btn-default">Eigenvector</button>
+                                    </div>
+                                 </div>
+                                
+                            </div>
+                            
+						</div>
+					</div> 
+                
+                
+                    <div class="row">
+                        <div class="col-lg-4 col-sm-4 col-lg-offset-2">
+                            <p onclick='$("#modal_close-btn").click()' class="text-center"><button id="" class="page-scroll btn btn-xl">Return Home</button></p>
+                        </div>
+
+                        <div class="col-lg-4 col-sm-4">
+                            <p class="text-center"><button id="net-share" class="page-scroll btn btn-xl share-btn">Share Experiment</button></p>
+                        </div>
+                    </div>
+                
+                <div id="debrief_general">
+                </div>
+                
+                <div id="modalcontactinsert">
+                </div>
+                
+            </div>            
+        </div>
+    </body>
+</html>
