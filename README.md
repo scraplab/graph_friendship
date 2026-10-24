@@ -1,6 +1,6 @@
 # Code for "The graph theoretic determinants of friendship selection"
 
-This repository contains the analysis code for Thornton, "The graph theoretic determinants of friendship selection." The corresponding data (raw, processed, and cached intermediate results) are archived separately on Zenodo at `[DOI]`.
+This repository contains the analysis code for Thornton, "The graph theoretic determinants of friendship selection." The corresponding data (raw, processed, and cached intermediate results) are archived separately on Zenodo at [doi.org/10.5281/zenodo.23628825](https://doi.org/10.5281/zenodo.23628825).
 
 ## Setup
 
@@ -67,7 +67,7 @@ Steps 1-2 are slow and their output is large. If you only want to rerun the anal
 
   Already run once on the full N = 8,614 sample (took about 15.5 hours on a CPU-only machine). As a sanity check, the freshly refit complete model's Brier skill (GELU: .0554, linear: .0452, averaged across repeats) landed close to the values already cached from the original notebook runs (GELU: .0561-.0563, linear: .0450) -- consistent with the same procedure, not a new or different model.
 
-  **The resulting artifacts (31MB, 263 files, including `bss_sanity_check.csv` with the full per-fit numbers) are archived on Zenodo at `[DOI]` alongside the raw/processed data, not in this git repository** -- they're training output, not code. Place the Zenodo deposit's `frozen_models/` folder directly alongside this code (same convention as `alldata.csv` -- see Data and working directory above) before running `replication_analysis_rq4.py`, or point its `ARTIFACT_DIR` at wherever you put it.
+  **The resulting artifacts (31MB, 263 files, including `bss_sanity_check.csv` with the full per-fit numbers) are archived on Zenodo at [doi.org/10.5281/zenodo.23628825](https://doi.org/10.5281/zenodo.23628825) alongside the raw/processed data, not in this git repository** -- they're training output, not code. Place the Zenodo deposit's `frozen_models/` folder directly alongside this code (same convention as `alldata.csv` -- see Data and working directory above) before running `replication_analysis_rq4.py`, or point its `ARTIFACT_DIR` at wherever you put it.
 
 ## Notes
 

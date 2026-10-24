@@ -8,4 +8,8 @@ authors:
     affiliation: "Dartmouth College"
     orcid: "https://orcid.org/0000-0000-0000-0000"
 license: MIT
-repository-code: "FILL IN GITHUB URL"
+repository-code: "https://github.com/scraplab/graph_friendship"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.23628825"
+    description: "Zenodo archive of the associated data"
