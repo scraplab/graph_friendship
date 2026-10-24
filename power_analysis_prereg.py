@@ -40,6 +40,7 @@ if 'sid' in shapley_bss.columns:
 
 Ns = [15, 20, 30, 40, 50, 75, 100, 150, 200, 300, 500, 750, 1000, 1500]
 N_REPS = 1000
+TARGET_N = 300   # the replication's actual planned sample size
 
 def bootstrap_power(x, Ns, n_reps, alt='two-sided'):
     x = x.dropna().to_numpy()
@@ -77,3 +78,10 @@ for g in shapley_bss.columns:
 out = pd.DataFrame(results)
 out.to_csv("power_prereg_rq4_results.csv", index=False)
 print("\nwrote power_prereg_rq4_results.csv")
+
+print(f"\n=== HEADLINE: power at the planned N = {TARGET_N} ===")
+row = out.loc[out['N'] == TARGET_N].iloc[0]
+print(f"  RQ4a complete vs. chance:        power = {row['power_complete_vs_chance']:.4f}")
+print(f"  RQ4b GELU vs. linear:            power = {row['power_gelu_vs_linear']:.4f}")
+for g in shapley_bss.columns:
+    print(f"  RQ4c shapley[{g}]: power = {row[f'power_shapley_{g}']:.4f}")

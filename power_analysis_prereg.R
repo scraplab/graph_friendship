@@ -56,6 +56,7 @@ colnames(mcoef) <- predictor_registry$name
 
 Ns <- c(100, 150, 200, 300, 400, 500, 750, 1000, 1500, 2000)
 N_REPS <- 50
+TARGET_N <- 300   # the replication's actual planned sample size
 
 sink("power_prereg_r_results.txt")
 cat("Power analysis for the R-side preregistration analyses (RQ1-RQ3)\n")
@@ -70,6 +71,8 @@ for (pred in c("Mutual friends", "Target distance")) {
     x <- ucoef[, pred]
     d <- t.test(x)$statistic / sqrt(ns)
     cat(sprintf("%s: unique/partial d = %.3f\n", pred, d))
+    power_at_target <- pwr.t.test(d = abs(d), n = TARGET_N, sig.level = .05, type = "one.sample")$power
+    cat(sprintf("  power at N=%d (two-sided): %.4f\n", TARGET_N, power_at_target))
     for (pw in c(.80, .90, .95)) {
         n_needed <- ceiling(pwr.t.test(d = abs(d), sig.level = .05, power = pw, type = "one.sample")$n)
         cat(sprintf("  N for %.0f%% power (two-sided): %d\n", pw * 100, n_needed))
@@ -113,9 +116,9 @@ profile_corr_power <- function(coef_mat, label, Ns, n_reps) {
     out
 }
 set.seed(1)
-profile_corr_power(zcoef, "zero_order", Ns, N_REPS)
-profile_corr_power(ucoef, "unique", Ns, N_REPS)
-profile_corr_power(mcoef[, !is.na(colSums(mcoef))], "marginal", Ns, N_REPS)
+rq1_pearson_zero     <- profile_corr_power(zcoef, "zero_order", Ns, N_REPS)
+rq1_pearson_unique   <- profile_corr_power(ucoef, "unique", Ns, N_REPS)
+rq1_pearson_marginal <- profile_corr_power(mcoef[, !is.na(colSums(mcoef))], "marginal", Ns, N_REPS)
 
 # ---- Wasserstein distance + permutation ----
 # Fast 1-D Wasserstein-1 distance via a shared quantile grid (avoids the
@@ -164,9 +167,9 @@ wasserstein_power <- function(coef_mat, label, Ns, n_reps, n_perm = 200, n_grid 
 cat("\n-- Wasserstein distance + permutation (this is the slow part) --\n")
 Ns_wass <- c(100, 200, 300, 500, 750, 1000)   # coarser grid -- this test is expensive
 set.seed(2)
-wasserstein_power(zcoef, "zero_order", Ns_wass, 30)
-wasserstein_power(ucoef, "unique", Ns_wass, 30)
-wasserstein_power(mcoef[, !is.na(colSums(mcoef))], "marginal", Ns_wass, 30)
+rq1_wass_zero     <- wasserstein_power(zcoef, "zero_order", Ns_wass, 30)
+rq1_wass_unique   <- wasserstein_power(ucoef, "unique", Ns_wass, 30)
+rq1_wass_marginal <- wasserstein_power(mcoef[, !is.na(colSums(mcoef))], "marginal", Ns_wass, 30)
 
 # ===========================================================================
 # RQ3 -- individual-differences generalization
@@ -236,6 +239,32 @@ pca_summary$power_cong_ge95  <- sapply(split(pmin(pca_res$cong1, pca_res$cong2),
 write.csv(pca_summary, "power_prereg_rq3_pca_summary.csv", row.names = FALSE)
 cat("\n")
 print(pca_summary, row.names = FALSE)
+
+# ===========================================================================
+# Headline summary at the replication's actual planned sample size
+# (TARGET_N = 300), pulled from the grids above rather than re-simulated.
+# ===========================================================================
+cat("\n\n=== HEADLINE: power at the planned N =", TARGET_N, "===\n")
+at_n <- function(df, n = TARGET_N) df[df$N == n, , drop = FALSE]
+
+cat("\nRQ1 -- Pearson profile correlation (descriptive, not a separate test):\n")
+cat(sprintf("  zero-order: mean r = %.4f\n", at_n(rq1_pearson_zero)$mean_r))
+cat(sprintf("  unique:     mean r = %.4f\n", at_n(rq1_pearson_unique)$mean_r))
+cat(sprintf("  marginal:   mean r = %.4f\n", at_n(rq1_pearson_marginal)$mean_r))
+
+cat("\nRQ1 -- Wasserstein distance + permutation (omnibus test):\n")
+cat(sprintf("  zero-order: power = %.4f\n", at_n(rq1_wass_zero)$power))
+cat(sprintf("  unique:     power = %.4f\n", at_n(rq1_wass_unique)$power))
+cat(sprintf("  marginal:   power = %.4f\n", at_n(rq1_wass_marginal)$power))
+
+cat("\nRQ3 -- PCA generalization:\n")
+pca_at_n <- at_n(pca_summary)
+cat(sprintf("  reconstruction ratio: mean = %.4f, power(ratio>=.90) = %.4f\n",
+            pca_at_n$ratio, pca_at_n$power_ratio_ge90))
+cat(sprintf("  congruence:           mean(min component) = %.4f, power(cong>=.95) = %.4f\n",
+            min(pca_at_n$cong1, pca_at_n$cong2), pca_at_n$power_cong_ge95))
+
+cat("\n(RQ2's power at N =", TARGET_N, "is printed above, in the RQ2 section.)\n")
 
 sink()
 cat("done -- see power_prereg_r_results.txt and power_prereg_rq*.csv\n")

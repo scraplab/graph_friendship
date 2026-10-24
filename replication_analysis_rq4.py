@@ -17,28 +17,22 @@ This is meant to be run exactly once, after the preregistration is
 registered and the replication cohort's alldata.csv exists. Point
 REPLICATION_ALLDATA_PATH at that file and run this script.
 
-IMPORTANT, as of this writing: load_frozen_models() below has nothing to
-load. neural_network_models.ipynb and linear_vs_nonlinear_ablation.ipynb fit
-all their models in memory and never persist the trained weights or the
-StandardScaler to disk -- only per-subject Brier skill scores on the
-original study's own held-out test split are cached. "Frozen-model
-transfer" requires the actual trained models (and the exact scaler they were
-trained with), so before this script can be run for real, the training
-notebooks need a small addition: save the complete GELU model, the complete
-linear model, the scaler, and every one of the 2**6 = 64 feature-group
-coalition models already being fit for the Shapley decomposition (Analysis
-3a), in the format load_frozen_models() documents below. That is a
-straightforward addition (every model these notebooks fit already exists in
-memory at some point; this just keeps a copy), not a redesign, but it does
-mean re-running (part of) the training pipeline once to produce the
-artifacts -- flagged here rather than done unprompted given the runtime cost
-(see the main README).
+The frozen model artifacts load_frozen_models() reads are produced by
+train_frozen_models.py, which reproduces the exact data split, scaling,
+architecture, and BASE_SEED+r training procedure used in
+neural_network_models.ipynb (the GELU models) and linear_vs_nonlinear_
+ablation.ipynb (the one linear-activation model), with model-saving added
+-- see that script's header for details. Each named model (complete_gelu,
+complete_linear, and every coalition) is saved as N_REPEATS=2 separate
+fits, matching both notebooks' own repeat-and-average convention exactly:
+scoring averages each repeat's per-subject Brier skill, not raw predicted
+probabilities (see score_model_repeats()).
 
-Every other piece of this script -- the scoring function, the exact Shapley
+Every piece of this script -- the scoring function, the exact Shapley
 formula, and the three inferential tests with Holm-Bonferroni correction --
-is implemented and was tested end-to-end (including real frozen models
-fit and saved in exactly this format) on a held-out subsample of the
-original study's own data before first use.
+was tested end-to-end (including real frozen models fit and saved in
+exactly this format) on a held-out subsample of the original study's own
+data before first use.
 """
 import itertools
 import json
@@ -96,7 +90,7 @@ def brier_skill(y_true, y_pred, p_chance, sid):
 
 
 def score_model(model, cols, scaler, scaler_cols, data, outcome=OUTCOME):
-    """Apply an already-fit, frozen model to new (replication) data: scales
+    """Apply one already-fit, frozen model to new (replication) data: scales
     `data` with the ORIGINAL training scaler (never refit on the replication
     sample -- the model's weights were learned in that fixed coordinate
     system), predicts, and returns per-participant Brier skill scores.
@@ -115,6 +109,17 @@ def score_model(model, cols, scaler, scaler_cols, data, outcome=OUTCOME):
     sid = X["sid"].to_numpy()
     p_pred = model.predict(Xc, batch_size=4096, verbose=0).ravel()
     return brier_skill(y_true, p_pred, p_chance, sid)
+
+
+def score_model_repeats(repeats, scaler, scaler_cols, data, outcome=OUTCOME):
+    """Scores every repeat of one variant separately, then averages the
+    per-subject Brier skill scores across repeats -- matching
+    neural_network_models.ipynb's own `pd.concat(reps, axis=1).mean(axis=1)`
+    convention exactly (average the scores, not the raw predicted
+    probabilities, and not until each repeat has gone through its own
+    per-subject groupby)."""
+    per_repeat = [score_model(model, cols, scaler, scaler_cols, data, outcome) for model, cols in repeats]
+    return pd.concat(per_repeat, axis=1).mean(axis=1)
 
 
 def shapley_values(coalition_bss, substantive_groups=SUBSTANTIVE_GROUPS):
@@ -149,11 +154,12 @@ def shapley_values(coalition_bss, substantive_groups=SUBSTANTIVE_GROUPS):
     return pd.DataFrame(phi)
 
 
+N_REPEATS = 2   # must match train_frozen_models.py / both notebooks' N_REPEATS
+
+
 def load_frozen_models(artifact_dir=ARTIFACT_DIR):
-    """Loads the frozen model artifacts this script expects. See the module
-    docstring for why none of this currently exists on disk. Expected
-    layout, all produced once at the end of the original training run and
-    never refit:
+    """Loads the frozen model artifacts train_frozen_models.py produces.
+    Expected layout, all produced once and never refit:
 
       artifact_dir/
         scaler.pkl                 -- joblib-dumped sklearn StandardScaler,
@@ -162,27 +168,32 @@ def load_frozen_models(artifact_dir=ARTIFACT_DIR):
                                        neural_network_models.ipynb)
         scaler_cols.json           -- the exact numeric_features column list
                                        (and order) the scaler was fit on
-        complete_gelu.keras        + complete_gelu_cols.json
-        complete_linear.keras      + complete_linear_cols.json
+        complete_gelu_r{0,1}.keras       + complete_gelu_r{0,1}_cols.json
+        complete_linear_r{0,1}.keras     + complete_linear_r{0,1}_cols.json
         shapley_coalitions/
-          <key>.keras + <key>_cols.json
+          <key>_r{0,1}.keras + <key>_r{0,1}_cols.json
             for 63 of the 2**6 = 64 subsets of SUBSTANTIVE_GROUPS (visual is
             implicit in every one); <key> = coalition_key(subset), i.e.
-            "empty" or "_".join(sorted(subset)). The one subset NOT saved
-            here is the full set (all 6 groups): that coalition IS the
-            complete model, not a separate fit of the same architecture --
-            exactly as neural_network_models.ipynb's own Shapley cell
-            reuses complete_repeats for that corner rather than refitting it
-            (see its ALL_SUBSETS loop). Aliasing it to complete_gelu here,
-            rather than loading an independently-trained duplicate, is what
-            makes the Shapley values satisfy their defining efficiency
-            property (sum of the six shares == complete - empty) exactly
-            instead of only approximately -- two separately-fit copies of
-            the same architecture land in different local optima and do NOT
-            agree closely enough on new data for that identity to hold.
+            "empty" or "_".join(sorted(subset)). Each named model has
+            N_REPEATS=2 separately-fit copies, matching both training
+            notebooks' own repeat-and-average convention (see
+            score_model_repeats()). The one subset NOT saved under
+            shapley_coalitions/ is the full set (all 6 groups): that
+            coalition IS the complete model, not a separate fit of the same
+            architecture -- exactly as neural_network_models.ipynb's own
+            Shapley cell reuses complete_repeats for that corner rather than
+            refitting it (see its ALL_SUBSETS loop). Aliasing it to
+            complete_gelu here, rather than loading an independently-trained
+            duplicate, is what makes the Shapley values satisfy their
+            defining efficiency property (sum of the six shares == complete
+            - empty) exactly instead of only approximately -- two
+            separately-fit copies of the same architecture land in
+            different local optima and do NOT agree closely enough on new
+            data for that identity to hold.
 
-    Returns a dict: {'scaler':, 'scaler_cols':, 'complete_gelu': (model, cols),
-    'complete_linear': (model, cols), 'coalitions': {frozenset: (model, cols)}}.
+    Returns a dict: {'scaler':, 'scaler_cols':, 'complete_gelu': [(model, cols), ...],
+    'complete_linear': [(model, cols), ...], 'coalitions': {frozenset: [(model, cols), ...]}},
+    each list having N_REPEATS entries.
     """
     import pickle
     from tensorflow.keras.models import load_model
@@ -191,8 +202,8 @@ def load_frozen_models(artifact_dir=ARTIFACT_DIR):
         if not os.path.exists(path):
             raise FileNotFoundError(
                 f"{path} not found. load_frozen_models() expects the artifacts "
-                "documented in its docstring; see this module's header for what "
-                "still needs to be added to the training notebooks to produce them."
+                "train_frozen_models.py produces; see this module's docstring "
+                "and that script's header for the expected layout."
             )
         return path
 
@@ -201,26 +212,28 @@ def load_frozen_models(artifact_dir=ARTIFACT_DIR):
     with open(_require(os.path.join(artifact_dir, "scaler_cols.json"))) as f:
         scaler_cols = json.load(f)
 
-    def _load_named(stem):
-        model = load_model(_require(os.path.join(artifact_dir, f"{stem}.keras")))
-        with open(_require(os.path.join(artifact_dir, f"{stem}_cols.json"))) as f:
-            cols = json.load(f)
-        return model, cols
+    def _load_repeats(stem):
+        repeats = []
+        for r in range(N_REPEATS):
+            model = load_model(_require(os.path.join(artifact_dir, f"{stem}_r{r}.keras")))
+            with open(_require(os.path.join(artifact_dir, f"{stem}_r{r}_cols.json"))) as f:
+                cols = json.load(f)
+            repeats.append((model, cols))
+        return repeats
 
-    complete_gelu = _load_named("complete_gelu")
-    complete_linear = _load_named("complete_linear")
+    complete_gelu = _load_repeats("complete_gelu")
+    complete_linear = _load_repeats("complete_linear")
 
     coalitions = {}
     n = len(SUBSTANTIVE_GROUPS)
     full_set = frozenset(SUBSTANTIVE_GROUPS)
-    for r in range(n + 1):
-        for subset in itertools.combinations(SUBSTANTIVE_GROUPS, r):
+    for r_size in range(n + 1):
+        for subset in itertools.combinations(SUBSTANTIVE_GROUPS, r_size):
             key = frozenset(subset)
             if key == full_set:
                 coalitions[key] = complete_gelu   # alias, not a separate fit -- see docstring
                 continue
-            model, cols = _load_named(os.path.join("shapley_coalitions", coalition_key(subset)))
-            coalitions[key] = (model, cols)
+            coalitions[key] = _load_repeats(os.path.join("shapley_coalitions", coalition_key(subset)))
 
     return {"scaler": scaler, "scaler_cols": scaler_cols,
             "complete_gelu": complete_gelu, "complete_linear": complete_linear,
@@ -280,18 +293,15 @@ def main():
     repl = pd.read_csv(REPLICATION_ALLDATA_PATH)
 
     print(f"Scoring {repl['sid'].nunique()} replication participants against frozen models...")
-    model, cols = frozen["complete_gelu"]
-    complete_bss = score_model(model, cols, frozen["scaler"], frozen["scaler_cols"], repl)
-
-    model, cols = frozen["complete_linear"]
-    linear_bss = score_model(model, cols, frozen["scaler"], frozen["scaler_cols"], repl)
+    complete_bss = score_model_repeats(frozen["complete_gelu"], frozen["scaler"], frozen["scaler_cols"], repl)
+    linear_bss = score_model_repeats(frozen["complete_linear"], frozen["scaler"], frozen["scaler_cols"], repl)
 
     full_set = frozenset(SUBSTANTIVE_GROUPS)
     coalition_bss = {full_set: complete_bss}   # same model as complete_gelu -- reuse, don't rescore
-    for subset, (model, cols) in frozen["coalitions"].items():
+    for subset, repeats in frozen["coalitions"].items():
         if subset == full_set:
             continue
-        coalition_bss[subset] = score_model(model, cols, frozen["scaler"], frozen["scaler_cols"], repl)
+        coalition_bss[subset] = score_model_repeats(repeats, frozen["scaler"], frozen["scaler_cols"], repl)
     shapley_df = shapley_values(coalition_bss)
 
     results = run_rq4_tests(complete_bss, linear_bss, shapley_df)
