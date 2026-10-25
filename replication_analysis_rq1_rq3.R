@@ -29,7 +29,7 @@
 # script's commit refers back to).
 # ===========================================================================
 
-setwd("D:/Dropbox/mysocialbrain/net/Study2/analyze")
+# setwd("PATH/TO/graph_friendship")  # uncomment and edit to point at this repo, or run from this directory
 if (!require(psych)) install.packages("psych"); require(psych)
 
 # ---- CONFIG: edit these two before running for real -----------------------

@@ -52,7 +52,6 @@ This is genuinely not runnable outside the live platform, by design:
 
 ## Provenance
 
-Copied from the live site's front-end source (`D:\Dropbox\webprojects\
-mysocialbrain` at the time of this archive), touching only HTML, CSS,
-JS, and image files -- no PHP or SQL/database-layer files were read or
-copied in preparing this folder.
+Copied from the live site's front-end source at the time of this
+archive, touching only HTML, CSS, JS, and image files -- no PHP or
+SQL/database-layer files were read or copied in preparing this folder.

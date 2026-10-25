@@ -14,7 +14,7 @@
 # analysis, not a prospective one with independently-justified priors; see
 # power_analysis_report.html for that caveat spelled out in more detail.
 # ===========================================================================
-setwd("D:/Dropbox/mysocialbrain/net/Study2/analyze")
+# setwd("PATH/TO/graph_friendship")  # uncomment and edit to point at this repo, or run from this directory
 if(!require(psych)) install.packages("psych"); require(psych)
 if(!require(pwr))   install.packages("pwr");   require(pwr)
 

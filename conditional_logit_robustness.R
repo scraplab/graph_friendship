@@ -21,7 +21,7 @@
 # choice among a variable-size candidate set, no padding or restriction to
 # a fixed choice-set size required.
 # ===========================================================================
-setwd("D:/Dropbox/mysocialbrain/net/Study2/analyze")
+# setwd("PATH/TO/graph_friendship")  # uncomment and edit to point at this repo, or run from this directory
 if(!require(survival)) install.packages("survival"); require(survival)
 
 cat("loading data...\n")
