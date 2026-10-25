@@ -1,12 +1,12 @@
 """
 train_frozen_models.py
 
-Produces the frozen model artifacts replication_analysis_rq4.py's
+Produces the frozen model artifacts replication_analysis_rq3.py's
 load_frozen_models() expects: the complete GELU model, the complete linear
 model, the StandardScaler they were trained with, and the 63 non-trivial
 feature-group coalition models needed for the exact Shapley decomposition
 (the 64th, all six substantive groups, IS the complete model -- see
-replication_analysis_rq4.py's docstring).
+replication_analysis_rq3.py's docstring).
 
 This is NOT a new analysis. Every model fit here, and the exact procedure
 used to fit it (data load, the participant-level 70/10/20 split, z-scoring,

@@ -3,11 +3,16 @@
 #
 # Power analysis for every R-side analysis planned in the replication
 # preregistration (preregistration_draft.html): RQ1 (profile replication,
-# both Wasserstein+permutation and Pearson correlation), RQ2 (sign-reversal
-# replication), and RQ3 (PCA out-of-sample reconstruction + noise ceiling,
-# and Tucker's congruence on a freshly-fit solution). RQ4 (frozen neural
-# network model transfer) is covered separately in power_analysis_prereg.py,
-# since it depends on the Python-side Brier skill results.
+# both Wasserstein+permutation and Pearson correlation), and RQ2 (PCA
+# out-of-sample reconstruction + noise ceiling, and Tucker's congruence on
+# a freshly-fit solution). RQ3 (frozen neural network model transfer) is
+# covered separately in power_analysis_prereg.py, since it depends on the
+# Python-side Brier skill results.
+#
+# (The preregistration originally also specified a sign-reversal RQ, on
+# mutual friend count and target distance; it was cut before registration,
+# and the RQ numbering was shifted down accordingly -- the old RQ3 is this
+# script's RQ2.)
 #
 # All effect sizes are drawn from the original study's own data
 # (coefficients.Rdata, mcoef.Rdata) -- this is a retrospective power
@@ -16,7 +21,6 @@
 # ===========================================================================
 # setwd("PATH/TO/graph_friendship")  # uncomment and edit to point at this repo, or run from this directory
 if(!require(psych)) install.packages("psych"); require(psych)
-if(!require(pwr))   install.packages("pwr");   require(pwr)
 
 load("coefficients.Rdata")   # zcoef, ucoef
 load("mcoef.Rdata")          # mcoef
@@ -59,25 +63,8 @@ N_REPS <- 50
 TARGET_N <- 300   # the replication's actual planned sample size
 
 sink("power_prereg_r_results.txt")
-cat("Power analysis for the R-side preregistration analyses (RQ1-RQ3)\n")
+cat("Power analysis for the R-side preregistration analyses (RQ1-RQ2)\n")
 cat("Original sample N =", ns, "\n\n")
-
-# ===========================================================================
-# RQ2 -- sign-reversal replication (two-sided, mutual friends & target
-# distance unique/partial coefficients)
-# ===========================================================================
-cat("=== RQ2: sign-reversal replication (two-sided t-tests) ===\n")
-for (pred in c("Mutual friends", "Target distance")) {
-    x <- ucoef[, pred]
-    d <- t.test(x)$statistic / sqrt(ns)
-    cat(sprintf("%s: unique/partial d = %.3f\n", pred, d))
-    power_at_target <- pwr.t.test(d = abs(d), n = TARGET_N, sig.level = .05, type = "one.sample")$power
-    cat(sprintf("  power at N=%d (two-sided): %.4f\n", TARGET_N, power_at_target))
-    for (pw in c(.80, .90, .95)) {
-        n_needed <- ceiling(pwr.t.test(d = abs(d), sig.level = .05, power = pw, type = "one.sample")$n)
-        cat(sprintf("  N for %.0f%% power (two-sided): %d\n", pw * 100, n_needed))
-    }
-}
 
 # ===========================================================================
 # RQ1 -- profile replication: Pearson correlation (fast, closed-form-
@@ -172,11 +159,11 @@ rq1_wass_unique   <- wasserstein_power(ucoef, "unique", Ns_wass, 30)
 rq1_wass_marginal <- wasserstein_power(mcoef[, !is.na(colSums(mcoef))], "marginal", Ns_wass, 30)
 
 # ===========================================================================
-# RQ3 -- individual-differences generalization
+# RQ2 -- individual-differences generalization
 # (a) out-of-sample reconstruction + noise ceiling
 # (b) Tucker's congruence on a freshly-fit solution
 # ===========================================================================
-cat("\n=== RQ3: PCA out-of-sample reconstruction + congruence ===\n")
+cat("\n=== RQ2: PCA out-of-sample reconstruction + congruence ===\n")
 
 partial_out_visual <- function(zc, uc) {
     uc_visual <- uc[, predictor_registry$name[visualidx], drop = FALSE]
@@ -236,7 +223,7 @@ pca_res <- do.call(rbind, rows)
 pca_summary <- aggregate(cbind(recon_r, noise_ceiling_r, ratio, cong1, cong2) ~ N, pca_res, mean, na.rm = TRUE)
 pca_summary$power_ratio_ge90 <- sapply(split(pca_res$ratio, pca_res$N), function(x) mean(x >= .90, na.rm = TRUE))[as.character(pca_summary$N)]
 pca_summary$power_cong_ge95  <- sapply(split(pmin(pca_res$cong1, pca_res$cong2), pca_res$N), function(x) mean(x >= .95, na.rm = TRUE))[as.character(pca_summary$N)]
-write.csv(pca_summary, "power_prereg_rq3_pca_summary.csv", row.names = FALSE)
+write.csv(pca_summary, "power_prereg_rq2_pca_summary.csv", row.names = FALSE)
 cat("\n")
 print(pca_summary, row.names = FALSE)
 
@@ -257,14 +244,12 @@ cat(sprintf("  zero-order: power = %.4f\n", at_n(rq1_wass_zero)$power))
 cat(sprintf("  unique:     power = %.4f\n", at_n(rq1_wass_unique)$power))
 cat(sprintf("  marginal:   power = %.4f\n", at_n(rq1_wass_marginal)$power))
 
-cat("\nRQ3 -- PCA generalization:\n")
+cat("\nRQ2 -- PCA generalization:\n")
 pca_at_n <- at_n(pca_summary)
 cat(sprintf("  reconstruction ratio: mean = %.4f, power(ratio>=.90) = %.4f\n",
             pca_at_n$ratio, pca_at_n$power_ratio_ge90))
 cat(sprintf("  congruence:           mean(min component) = %.4f, power(cong>=.95) = %.4f\n",
             min(pca_at_n$cong1, pca_at_n$cong2), pca_at_n$power_cong_ge95))
-
-cat("\n(RQ2's power at N =", TARGET_N, "is printed above, in the RQ2 section.)\n")
 
 sink()
 cat("done -- see power_prereg_r_results.txt and power_prereg_rq*.csv\n")

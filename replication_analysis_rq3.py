@@ -1,7 +1,7 @@
 """
-replication_analysis_rq4.py
+replication_analysis_rq3.py
 
-The exact confirmatory analysis for RQ4 (frozen neural-network-model
+The exact confirmatory analysis for RQ3 (frozen neural-network-model
 transfer) of the replication preregistration (preregistration_draft.html,
 "Statistical models" section): the original study's already-trained complete
 model (GELU), its linear-activation counterpart, and the coalition models
@@ -12,6 +12,11 @@ per-participant Brier skill, and tested as specified there:
   (b) GELU-minus-linear complete-model difference vs. 0 -- one-sided (greater)
   (c) each of the six Shapley shares vs. 0 -- two-sided, Holm-Bonferroni
       corrected across the six
+
+(The preregistration originally also specified a sign-reversal RQ, on
+mutual friend count and target distance; it was cut before registration,
+and the RQ numbering was shifted down accordingly -- the old RQ4 is this
+script's RQ3.)
 
 This is meant to be run exactly once, after the preregistration is
 registered and the replication cohort's alldata.csv exists. Point
@@ -46,7 +51,7 @@ from scipy import stats
 # ---- CONFIG: edit before running for real ----------------------------------
 REPLICATION_ALLDATA_PATH = "replication_alldata.csv"
 ARTIFACT_DIR             = "frozen_models"
-OUTPUT_PATH              = "replication_results_rq4.csv"
+OUTPUT_PATH              = "replication_results_rq3.csv"
 ALPHA                    = .05
 
 OUTCOME = "binres"
@@ -255,20 +260,20 @@ def holm_bonferroni(pvals):
     return adj
 
 
-def run_rq4_tests(complete_bss, linear_bss, shapley_df):
+def run_rq3_tests(complete_bss, linear_bss, shapley_df):
     """The three preregistered inferential procedures. complete_bss and
     linear_bss are per-subject Series (same index); shapley_df is the output
     of shapley_values(), one column per substantive group."""
     rows = []
 
     t_complete = stats.ttest_1samp(complete_bss, 0, alternative="greater")
-    rows.append({"rq": "RQ4a", "variant": "complete_vs_chance", "test": "one_sided_greater",
+    rows.append({"rq": "RQ3a", "variant": "complete_vs_chance", "test": "one_sided_greater",
                  "statistic": t_complete.statistic, "p_value": t_complete.pvalue,
                  "sig": t_complete.pvalue < ALPHA, "mean": complete_bss.mean(), "n": len(complete_bss)})
 
     diff = complete_bss.reindex(linear_bss.index) - linear_bss
     t_diff = stats.ttest_1samp(diff.dropna(), 0, alternative="greater")
-    rows.append({"rq": "RQ4b", "variant": "gelu_minus_linear", "test": "one_sided_greater",
+    rows.append({"rq": "RQ3b", "variant": "gelu_minus_linear", "test": "one_sided_greater",
                  "statistic": t_diff.statistic, "p_value": t_diff.pvalue,
                  "sig": t_diff.pvalue < ALPHA, "mean": diff.mean(), "n": diff.dropna().shape[0]})
 
@@ -281,7 +286,7 @@ def run_rq4_tests(complete_bss, linear_bss, shapley_df):
     shap_df["p_holm"] = holm_bonferroni(shap_df["p_value"].to_numpy())
     shap_df["sig"] = shap_df["p_holm"] < ALPHA
     for _, r in shap_df.iterrows():
-        rows.append({"rq": "RQ4c", "variant": r["group"], "test": "two_sided_holm",
+        rows.append({"rq": "RQ3c", "variant": r["group"], "test": "two_sided_holm",
                      "statistic": r["statistic"], "p_value": r["p_holm"],
                      "sig": r["sig"], "mean": r["mean"], "n": r["n"]})
 
@@ -304,7 +309,7 @@ def main():
         coalition_bss[subset] = score_model_repeats(repeats, frozen["scaler"], frozen["scaler_cols"], repl)
     shapley_df = shapley_values(coalition_bss)
 
-    results = run_rq4_tests(complete_bss, linear_bss, shapley_df)
+    results = run_rq3_tests(complete_bss, linear_bss, shapley_df)
     results.to_csv(OUTPUT_PATH, index=False)
     print(results.to_string(index=False))
     print(f"\nwrote {OUTPUT_PATH}")

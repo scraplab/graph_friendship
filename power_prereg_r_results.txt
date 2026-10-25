@@ -1,17 +1,6 @@
-Power analysis for the R-side preregistration analyses (RQ1-RQ3)
+Power analysis for the R-side preregistration analyses (RQ1-RQ2)
 Original sample N = 8614 
 
-=== RQ2: sign-reversal replication (two-sided t-tests) ===
-Mutual friends: unique/partial d = -0.426
-  power at N=300 (two-sided): 1.0000
-  N for 80% power (two-sided): 46
-  N for 90% power (two-sided): 60
-  N for 95% power (two-sided): 74
-Target distance: unique/partial d = 0.420
-  power at N=300 (two-sided): 1.0000
-  N for 80% power (two-sided): 47
-  N for 90% power (two-sided): 62
-  N for 95% power (two-sided): 76
 
 === RQ1: profile replication ===
 
@@ -74,7 +63,7 @@ Target distance: unique/partial d = 0.420
   marginal N=750 power=1.00
   marginal N=1000 power=1.00
 
-=== RQ3: PCA out-of-sample reconstruction + congruence ===
+=== RQ2: PCA out-of-sample reconstruction + congruence ===
   PCA N= 100 done
   PCA N= 150 done
   PCA N= 200 done
@@ -119,8 +108,6 @@ RQ1 -- Wasserstein distance + permutation (omnibus test):
   unique:     power = 1.0000
   marginal:   power = 1.0000
 
-RQ3 -- PCA generalization:
+RQ2 -- PCA generalization:
   reconstruction ratio: mean = 0.9932, power(ratio>=.90) = 1.0000
   congruence:           mean(min component) = 0.9983, power(cong>=.95) = 1.0000
-
-(RQ2's power at N = 300 is printed above, in the RQ2 section.)

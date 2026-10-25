@@ -1,12 +1,16 @@
 # ===========================================================================
-# replication_analysis_rq1_rq3.R
+# replication_analysis_rq1_rq2.R
 #
-# The exact confirmatory analysis for RQ1 (profile replication), RQ2 (sign-
-# reversal replication), and RQ3 (individual-differences generalization) of
-# the replication preregistration (preregistration_draft.html, "Statistical
-# models" section). RQ4 (frozen neural-network-model transfer) is a separate
-# script, replication_analysis_rq4.py, since it depends on the Python-side
-# models.
+# The exact confirmatory analysis for RQ1 (profile replication) and RQ2
+# (individual-differences generalization) of the replication preregistration
+# (preregistration_draft.html, "Statistical models" section). RQ3 (frozen
+# neural-network-model transfer) is a separate script,
+# replication_analysis_rq3.py, since it depends on the Python-side models.
+#
+# (The preregistration originally also specified a sign-reversal RQ, on
+# mutual friend count and target distance; it was cut before registration,
+# and this script's RQ numbering was shifted down accordingly -- the old
+# RQ3 is this file's RQ2.)
 #
 # This is meant to be run exactly once, after the preregistration is
 # registered and the replication cohort's raw data has been pulled and run
@@ -35,10 +39,10 @@ if (!require(psych)) install.packages("psych"); require(psych)
 # ---- CONFIG: edit these two before running for real -----------------------
 ORIGINAL_CACHE_DIR        <- "."                            # where coefficients.Rdata / mcoef.Rdata live
 REPLICATION_ALLDATA_PATH  <- "replication_alldata.csv"       # the new cohort's alldata.csv
-OUTPUT_PATH               <- "replication_results_rq1_rq3.csv"
+OUTPUT_PATH               <- "replication_results_rq1_rq2.csv"
 N_PERM_WASSERSTEIN        <- 2000                             # permutations for RQ1's omnibus test
 ALPHA                     <- .05
-RECONSTRUCTION_THRESHOLD  <- .90                              # RQ3(a) pre-specified ratio threshold
+RECONSTRUCTION_THRESHOLD  <- .90                              # RQ2(a) pre-specified ratio threshold
 CONGRUENCE_EXCELLENT      <- .95                              # Lorenzo-Seva & ten Berge convention
 CONGRUENCE_FAIR           <- .85
 
@@ -230,26 +234,7 @@ run_rq1 <- function(orig, repl) {
 }
 
 # ===========================================================================
-# RQ2 -- sign-reversal replication: two-sided, one-sample t-tests on the
-# replication sample's unique/partial coefficients for mutual friend count
-# and target distance.
-# ===========================================================================
-run_rq2 <- function(repl) {
-    rows <- list()
-    for (pred in c("Mutual friends", "Target distance")) {
-        x <- repl$ucoef[, pred]
-        tt <- t.test(x, alternative = "two.sided")
-        rows[[length(rows) + 1]] <- data.frame(
-            rq = "RQ2", variant = pred, test = "two_sided_one_sample_t",
-            statistic = unname(tt$statistic), p_value = tt$p.value,
-            sig = tt$p.value < ALPHA, detail = sprintf("mean=%.4f, n=%d", mean(x), length(x))
-        )
-    }
-    do.call(rbind, rows)
-}
-
-# ===========================================================================
-# RQ3 -- individual-differences generalization.
+# RQ2 -- individual-differences generalization.
 # (a) out-of-sample reconstruction + noise ceiling (original loadings,
 #     recomputed from the cached original zcoef/ucoef since the PCA fit
 #     object itself isn't separately cached -- principal(zcoef_clean, 2) is
@@ -257,7 +242,7 @@ run_rq2 <- function(repl) {
 # (b) a fresh two-component varimax solution fit on the replication sample,
 #     matched to the original loadings by Tucker's congruence coefficient.
 # ===========================================================================
-run_rq3 <- function(orig, repl) {
+run_rq2 <- function(orig, repl) {
     orig_clean <- partial_out_visual(orig$zcoef, orig$ucoef)
     repl_clean <- partial_out_visual(repl$zcoef, repl$ucoef)
 
@@ -281,14 +266,14 @@ run_rq3 <- function(orig, repl) {
     cong_band <- if (cong_min >= CONGRUENCE_EXCELLENT) "excellent" else if (cong_min >= CONGRUENCE_FAIR) "fair" else "poor"
 
     rbind(
-        data.frame(rq = "RQ3a", variant = "reconstruction", test = "ratio_to_noise_ceiling",
+        data.frame(rq = "RQ2a", variant = "reconstruction", test = "ratio_to_noise_ceiling",
                    statistic = ratio, p_value = NA, sig = ratio >= RECONSTRUCTION_THRESHOLD,
                    detail = sprintf("recon_r=%.4f, noise_ceiling_r=%.4f", recon_r, noise_ceil_r)),
-        data.frame(rq = "RQ3b", variant = "congruence_component1", test = "tucker_congruence",
+        data.frame(rq = "RQ2b", variant = "congruence_component1", test = "tucker_congruence",
                    statistic = cong[1], p_value = NA, sig = NA, detail = NA_character_),
-        data.frame(rq = "RQ3b", variant = "congruence_component2", test = "tucker_congruence",
+        data.frame(rq = "RQ2b", variant = "congruence_component2", test = "tucker_congruence",
                    statistic = cong[2], p_value = NA, sig = NA, detail = NA_character_),
-        data.frame(rq = "RQ3b", variant = "congruence_min_band", test = "tucker_congruence",
+        data.frame(rq = "RQ2b", variant = "congruence_min_band", test = "tucker_congruence",
                    statistic = cong_min, p_value = NA, sig = NA, detail = cong_band)
     )
 }
@@ -311,8 +296,7 @@ if (!exists("SKIP_MAIN")) {
 
     results <- rbind(
         run_rq1(orig, repl),
-        run_rq2(repl),
-        run_rq3(orig, repl)
+        run_rq2(orig, repl)
     )
     write.csv(results, OUTPUT_PATH, row.names = FALSE)
     cat("\n"); print(results, row.names = FALSE)
